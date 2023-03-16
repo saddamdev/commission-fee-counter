@@ -1,3 +1,5 @@
+let activeUsers = [];
+let transActionRecords = [];
 // a class of some conditional calculation methods
 class Calculations {
   constructor() {}
@@ -14,15 +16,72 @@ class Calculations {
   };
 
   /*
+  this method's duty is to detect a new week for a user
+  and return total cash out of current week
+  */
+  getThisWeekCashOut = (userId, transActionDate, transActionAmount) => {
+    let totalWeeklyCashOut;
+
+    const date = new Date(transActionDate);
+    const currentDay = date.getDay();
+    const currentDate = date.getDate();
+    const currentMonth = date.getMonth();
+    const currentYear = date.getFullYear();
+
+    if (activeUsers.includes(userId) === false) {
+      activeUsers.push(userId);
+      const user = {
+        id: userId,
+        lastTransAction: transActionDate,
+        date: currentDate,
+        day: currentDay,
+        month: currentMonth,
+        year: currentYear,
+        cashOut: transActionAmount,
+      };
+      transActionRecords.push(user);
+      totalWeeklyCashOut = transActionAmount;
+    } else {
+      transActionRecords = transActionRecords.map((user) => {
+        if (user.id === userId) {
+          const dateGap = currentDate - user.date;
+          if (
+            transActionDate !== user.lastTransAction &&
+            (currentDay <= user.day ||
+              dateGap > 7 ||
+              dateGap <= 0 ||
+              currentMonth !== user.month ||
+              currentYear !== user.year) &&
+            currentDay > 0
+          ) {
+            totalWeeklyCashOut = transActionAmount;
+            return { ...user, cashOut: transActionAmount };
+          } else {
+            totalWeeklyCashOut = user.cashOut + transActionAmount;
+            return { ...user, cashOut: totalWeeklyCashOut };
+          }
+        } else return user;
+      });
+    }
+
+    return totalWeeklyCashOut;
+  };
+
+  /*
   this method calculates cash out fee for Natural Person
-  based on amount, percent and free cash out limit
+  based on id, date, amount, percent and free cash out limit
   default commission fee is 0.3%
   */
-  countNaturalCashOutFee = (amount, percent = 0.3, freeLimit) => {
+  countNaturalCashOutFee = (id, date, amount, percent = 0.3, freeLimit) => {
     let fee;
 
-    if (amount > freeLimit) {
-      const totalFee = ((amount - freeLimit) / 100) * percent;
+    const weeklyCashOut = this.getThisWeekCashOut(id, date, amount);
+
+    if (weeklyCashOut > freeLimit) {
+      const totalFee =
+        weeklyCashOut - amount === 0
+          ? ((amount - freeLimit) / 100) * percent
+          : (amount / 100) * percent;
       fee = this.roundTheFee(totalFee);
     } else fee = 0.0;
 

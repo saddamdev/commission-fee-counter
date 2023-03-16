@@ -52,6 +52,8 @@ const countAllFees = async () => {
     ) {
       transAction.user_type === 'natural'
         ? counter.countNaturalCashOutFee(
+            transAction.user_id,
+            transAction.date,
             transAction.operation.amount,
             naturalPercent,
             freeCashOutLimit

@@ -2,9 +2,15 @@ const Calculations = require('../services/calculations');
 
 describe('Calculations Methods', () => {
   const counter = new Calculations();
+  let activeUsers = [];
+  let transActionRecords = [];
 
   test('test - roundTheFee method', () => {
     expect(counter.roundTheFee(1.023)).toBe(1.03);
+  });
+
+  test('test - getThisWeekCashOut method', () => {
+    expect(counter.getThisWeekCashOut(1, '2016-01-05', 999)).toBe(999);
   });
 
   test('test - countCashInFee method', () => {
